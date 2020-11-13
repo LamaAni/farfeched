@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+### Installs all of the utilities needed for kubectl and kubens
+
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing kuberntes utils"
+
+log "Installing kubectl.."
+sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2 curl &&
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - &&
+    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list &&
+    sudo apt-get update -yqq &&
+    sudo apt-get install -yqq kubectl
+assert $? "Failed to install kubectl." || exit $?
+
+log "Installing kubectx and kubens"
+KUBECTX_LINK="https://github.com/ahmetb/kubectx"
+KUBECTX_VERSION=$(get_github_latest_release_version "${KUBECTX_LINK}")
+assert $? "Failed to resolve the kubectx version"
+KUBECTX_DOWNLOAD_LINK="${KUBECTX_LINK}/releases/download/${KUBECTX_VERSION}/kubectx_${KUBECTX_VERSION}_linux_x86_64.tar.gz"
+KUBENS_DOWNLOAD_LINK="${KUBECTX_LINK}/releases/download/${KUBECTX_VERSION}/kubens_${KUBECTX_VERSION}_linux_x86_64.tar.gz"
+
+mkdir -p "$APPS_DIR/kubectx"
+assert $? "Failed to create kubectx directory" || exit $?
+
+log "Donwloading $KUBECTX_DOWNLOAD_LINK"
+curl -sL "$KUBECTX_DOWNLOAD_LINK" | tar -xzvf - -C "$APPS_DIR/kubectx" --strip 1
+assert $? "Failed to download the kubectx scripts" || exit $?
+
+log "Donwloading $KUBENS_DOWNLOAD_LINK"
+curl -sL "$KUBENS_DOWNLOAD_LINK" | tar -xzvf - -C "$APPS_DIR/kubectx" --strip 1
+assert $? "Failed to download the kubectx scripts" || exit $?
+
+sudo ln -sf "$APPS_DIR/kubectx/kubectx" /usr/local/bin/kubectx &&
+    sudo ln -sf "$APPS_DIR/kubectx/kubens" /usr/local/bin/kubens
+assert $? "Failed to register scripts to local bin, ${yellow}scripts are not available.${end_color}"

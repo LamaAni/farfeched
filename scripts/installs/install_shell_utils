@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing shell utils"
+
+log "Installing shellcheck..."
+sudo apt-get install -yqq shellcheck
+assert $? "faile to install shellcheck"
+
+log "Resolve latest shfmt versions"
+latest_shfmt_ver=$(get_github_latest_release "https://github.com/mvdan/sh")
+assert $? "Failed to resolve version." || exit $?
+log "Latest version: ${yellow}${latest_shfmt_ver}${end_color}"
+
+log "Downloading shfmt"
+mkdir -p "$APPS_DIR/shfmt"
+target_name="$APPS_DIR/shfmt/shfmt.${latest_shfmt_ver}"
+curl -L \
+    "https://github.com/mvdan/sh/releases/download/${latest_shfmt_ver}/shfmt_${latest_shfmt_ver}_linux_amd64" \
+    -o "$target_name"
+assert $? "Failed to download shfmt" || exit $?
+
+log "Linking and adding run permissions.."
+sudo ln -sf "$target_name" /usr/local/bin/shfmt
+assert $? "failed to link to local bin. shfmt not available on cli."
+chmod +x "$target_name"
+assert $? "failed change run permissions on shfmt."

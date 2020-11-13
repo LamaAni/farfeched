@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+type realpath &>/dev/null
+if [ $? ]; then
+    function realpath() {
+        python3 -c "import os; print(os.path.abspath('$1'))"
+    }
+fi
+
+REPO_PATH="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")" || exit $?
+if [ "$1" == "--nobuild" ]; then
+    shift
+else
+    "$REPO_PATH/docker/build" || exit
+fi
+
+docker run -p 0.0.0.0:9000:9000 -p 0.0.0.0:9001:9001 \
+    -v "$REPO_PATH/.local/bound:/workspace" \
+    -v "$HOME/.ssh:/mnt/homelinked_volumes/.ssh" \
+    -it --rm farfetched:debug "$@"

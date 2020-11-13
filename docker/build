@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+type realpath &>/dev/null
+if [ $? ]; then
+    function realpath() {
+        python3 -c "import os; print(os.path.abspath('$1'))"
+    }
+fi
+
+REPO_PATH="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")" || exit $?
+docker build "$REPO_PATH" -t farfetched:debug -f "$REPO_PATH/docker/Dockerfile"

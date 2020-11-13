@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing aws command line using pip3"
+pip3 install awscli --upgrade --user

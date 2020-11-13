@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing vscode"
+
+startdir="$PWD"
+tempdir=$(mktemp -d) || exit $?
+
+log "Install pre-requisites.."
+sudo apt-get update &&
+  sudo apt-get install -yqq \
+    libnotify4 \
+    libnss3 \
+    libxkbfile1 \
+    libsecret-1-0 &&
+  sudo apt-get upgrade
+assert $? "Failed to install pre-requisits"
+
+function install() {
+  log "Downloading vscode..."
+  curl -Ls "https://go.microsoft.com/fwlink/?LinkID=760868" -o ./vscode.deb || return $?
+  log "Installing vscode..."
+  sudo dpkg -i ./vscode.deb || return $?
+  log "Updating dependencies..."
+  sudo apt-get install -fys
+}
+
+mkdir -p "$tempdir"
+
+cd "$tempdir" || exit $?
+install
+last_error=$?
+cd "$startdir" || exit $?
+rm -R "$tempdir" || exit $?
+log "Deleted temp directory."
+assert $last_error "Failed to install vscode." || exit $?

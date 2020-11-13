@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+function download_app() {
+    local name="$1"
+    local uri="$2"
+    local download_folder="$APPS_DIR/$name"
+    mkdir -p "$download_folder"
+    curl -sL "$uri" | tar -z "$download_folder/"
+}
+
+while "$#"; do
+    download_app "$1" "$2"
+done

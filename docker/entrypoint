@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+source /scripts/common.sh
+
+source /scripts/image/bind_mounts
+assert $? "Failed to bind mounts" || exit $?
+
+log:sep "Starting system services"
+ttyd -p "$TTYD_PORT" "$TTYD_SHELL" &
+code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 &
+
+log "System ready, waiting for termination signal @ https port 9999"
+nc -lv localhost 9999

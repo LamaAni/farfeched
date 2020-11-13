@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing vscode extentions"
+
+ALL_EXTENTIONS=($(cat "$SCRIPTS_PATH/image/install_vscode_server_user_extensions.txt"))
+ALL_EXTENTIONS+=($VSCODE_EXTENSIONS)
+
+if [ "${#ALL_EXTENTIONS}" -gt 0 ]; then
+
+    for ext in "${ALL_EXTENTIONS[@]}"; do
+        code-server --install-extension "$ext"
+    done
+fi
+
+# mkdir -p "$HOME/.config/Code/User" &&
+#     echo "{}" >>"$HOME/.config/Code/User/settings.json"
+# assert $? "Failed to initialize remote user vscode settings"
+
+# log:sep "Installing python package fix"
+# mkdir -p "$APPS_DIR/vscode_direct_install_extentions"
+# TEMPFILE="$APPS_DIR/vscode_direct_install_extentions/ms-toolsai.jupyter.vsix"
+
+# JUPYTER_PACAKGE_FIX_URI="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-toolsai/vsextensions/jupyter/2020.11.358496489/vspackage"
+# curl -Ls "$JUPYTER_PACAKGE_FIX_URI" -o "$TEMPFILE.gz" &&
+#     gunzip -f "$TEMPFILE"
+# assert $? "Falied to download and extract jupyter fix package"
+
+# code-server --install-extension "$TEMPFILE"

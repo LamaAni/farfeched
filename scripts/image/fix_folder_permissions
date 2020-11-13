@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Fixing folder permissions"
+
+for loc in "$@"; do
+    log "Fixing $loc"
+    sudo chown -R "$DEV_USER" "$loc" &&
+        sudo chgrp -R "developers" "$loc"
+    assert $? "Failed to change permissions on $loc"
+done

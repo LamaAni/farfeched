@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+: "${WORKSPACE_MOUNT_PATH:="/workspace"}"
+: "${WORKSPACE_STAMP_FILE:="$WORKSPACE_MOUNT_PATH/initialized.stamp"}"
+: "${CONTAINER_STAMP_FILE:="/tmp/initialized.stamp"}"
+: "${BOUND_FOLDERS:="/home"}"
+
+function link_to_workspace() {
+    for folder in "$@"; do
+        if [ -d "$folder" ] || [ -f "$folder" ]; then
+            sudo rm -R "$folder"
+            assert $? "Failed to remove $folder" || return $?
+        fi
+        sudo ln -sf "$WORKSPACE_MOUNT_PATH/$(basename "$folder")" "$folder"
+        assert $? "Failed to link workspace folder" || return $?
+    done
+}
+
+function move_to_workspace() {
+    for folder in "$@"; do
+        log "Binding $folder ..."
+        if [ -d "$folder" ] || [ -f "$folder" ]; then
+            sudo mv "$folder" "$WORKSPACE_MOUNT_PATH"
+            assert $? "Failed to move $folder to workdir" || return $?
+        else
+            log:warning "Skipping $folder, not found"
+        fi
+    done
+}
+
+function process_moves() {
+    if [ -f "$WORKSPACE_STAMP_FILE" ]; then
+        return
+    fi
+    log:sep "Preparing mounts.."
+    log "Logging in as root..."
+    sudo echo "" &>/dev/null
+    log "Binding locals to volume"
+    move_to_workspace $BOUND_FOLDERS
+    assert $? "Failed to initialzie binds" || exit $?
+    touch "$WORKSPACE_STAMP_FILE"
+    assert $? "Failed to initialize workspace stamp"
+}
+
+function process_links() {
+    if [ -f "$CONTAINER_STAMP_FILE" ]; then
+        return
+    fi
+    log "Linking mounts.."
+    sudo echo "" &>/dev/null
+    link_to_workspace $BOUND_FOLDERS
+    assert $? "Failed to link workspace" || exit $?
+    touch "$CONTAINER_STAMP_FILE"
+    assert $? "Failed to initialize container stamp"
+}
+
+function process_mount_homelinks() {
+    if [ ! -d "$EXTRA_HOMELINKED_VOLUMES" ]; then
+        return
+    fi
+
+    for f in $EXTRA_HOMELINKED_VOLUMES/*; do
+        if [ -d "$f" ]; then
+            # $f is a directory
+            local source_folder="$(realpath $f)"
+            local target_folder="$HOME/$(basename $source_folder)"
+            ln -sf "$source_folder" "$target_folder"
+            assert $? "Failed to link homelink @ $source_folder -> $target_folder" || exit $?
+        fi
+    done
+}
+
+STARTED_AT="$(realpath "$PWD")"
+cd /
+process_moves && process_links && process_mount_homelinks || exit $?
+cd "$STARTED_AT"
+assert $? "Failed to move back to original directory"

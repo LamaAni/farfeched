@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing gcloud"
+
+# install required packages.
+log "Install dependencies"
+sudo apt-get install -yqq \
+  apt-transport-https\
+  ca-certificates gnupg
+assert $? "Failed to install gcloud dependencies" || exit $?
+
+log "Adding Cloud SDK distribution URI as a package source."
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" |
+  sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+
+assert $? "Failed to retrieve gcloud for distribution." || exit $?
+
+log "Importing keys.."
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+assert $? "Failed to import the Google Cloud Platform public key." || exit $?
+
+echo "Update.."
+sudo apt-get update -yqq ||
+assert $? "Failed to update, trying to install anyways?"
+echo "Install.."
+sudo apt-get install -yqq google-cloud-sdk
+assert $? "Failed to install gcloud" || exit $?

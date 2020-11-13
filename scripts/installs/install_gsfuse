@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing gsfuse"
+
+get_os_release &&
+    export GCSFUSE_REPO=gcsfuse-disco &&
+    echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list &&
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - &&
+    sudo apt-get update -yqq &&
+    sudo apt-get install -yqq gcsfuse
+assert $? "Failed to install gcsfuse" || exit $?
+
+# get_os_release
+
+# function install_gsfuse() {
+
+#     log "Downloading gsfuse apt keys..."
+#     local lsb_release_name=$(lsb_release -c -s)
+#     if [ "$lsb_release_name" == 'disco' ]; then
+#         lsb_release_name="bionic"
+#     fi
+#     export GCSFUSE_REPO=gcsfuse-"$lsb_release_name"
+#     echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
+#     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+#     assert $? "Failed to download apt keys" || return $?
+
+#     log "Installing gcsfuse ..."
+#     sudo apt-get update -yqq &&
+#         sudo apt-get install -yqq gcsfuse
+#     assert $? "Failed to install gsfuse" || return $?
+
+#     log "Configuring permissions ..."
+#     sudo groupadd fuse
+#     assert $? "fuse group already exists, ignoring group create"
+#     sudo usermod -a -G fuse $(whoami)
+#     assert $? "Failed to set gsfuse permissions" || return $?
+
+#     log "gcsfuse installed."
+# }
+
+# install_gsfuse

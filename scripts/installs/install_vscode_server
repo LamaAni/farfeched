@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing vscode http server"
+
+# curl -fsSL https://code-server.dev/install.sh | sh
+# assert $? "Failed to install vscode-server"
+
+log "Getting latest vscode-server version.."
+VSCODE_SERVER_REPO="https://github.com/cdr/code-server"
+VSCODE_SERVER_VERSION=$(get_github_latest_release_version "$VSCODE_SERVER_REPO" | grep -Eo "[^v].*$")
+assert $? "Error resolving latest vscode-server version @ $VSCODE_SERVER_REPO" || exit $?
+
+#https://github.com/cdr/code-server/releases/download/3.6.2/code-server-3.6.2-linux-amd64.tar.gz
+#https://github.com/cdr/code-server/releases/download/v3.6.2/code-server-3.6.2-linux-amd64.tar.gz
+#https://github.com/cdr/code-server/releases/download/v3.6.2/code-server-3.6.2-amd64.rpm
+VSCODE_DOWNLOAD_URL="$VSCODE_SERVER_REPO/releases/download/v${VSCODE_SERVER_VERSION}/code-server-${VSCODE_SERVER_VERSION}-linux-amd64.tar.gz"
+
+export VSCODE_SERVER_FOLDER="$APPS_DIR/vscode-server"
+
+log "Downloading and installing vscode server from $VSCODE_DOWNLOAD_URL"
+mkdir -p "$VSCODE_SERVER_FOLDER" &&
+    curl -sL "$VSCODE_DOWNLOAD_URL" | tar -xzvf - -C "$VSCODE_SERVER_FOLDER" --strip 1 >>/tmp/code_server_install_log.log
+assert $? "Failed to download and extract vscode server" || exit $?
+
+COMMAND_FILE="$VSCODE_SERVER_FOLDER/bin/code-server"
+log "Linking and setting permissions @ $COMMAND_FILE -> /usr/local/bin/code-server"
+chmod +x "$COMMAND_FILE"
+assert $? "Failed to set run permissions on $COMMAND_FILE" || exit $?
+sudo ln -sf "$COMMAND_FILE" "/usr/local/bin/code-server" &&
+    sudo ln -sf "$COMMAND_FILE" "/usr/local/bin/code"
+assert $? "Failed to link binaries"
+
+# find "$VSCODE_SERVER_FOLDER" -name "product.json"
+# cat "${VSCODE_SERVER_FOLDER}/lib/vscode/product.json"
+
+log "Upgrading extention search extension gallery"
+python3 "$SCRIPTS_PATH/installs/install_vscode_server.py"
+assert $? "Failed to upgrade vscode extension search gallery"
+
+ALL_EXTENTIONS=($(cat "$SCRIPTS_PATH/installs/install_vscode_server.vscode_ext.txt"))
+ALL_EXTENTIONS+=($VSCODE_EXTENSIONS)
+
+if [ "${#ALL_EXTENTIONS}" -gt 0 ]; then
+    log:sep "Installing vscode extentions"
+    for ext in "${ALL_EXTENTIONS[@]}"; do
+        code-server --install-extension "$ext"
+    done
+fi
+
+# mkdir -p "$HOME/.config/Code/User" &&
+#     echo "{}" >>"$HOME/.config/Code/User/settings.json"
+# assert $? "Failed to initialize remote user vscode settings"
+
+# log:sep "Installing python package fix"
+# mkdir -p "$APPS_DIR/vscode_direct_install_extentions"
+# TEMPFILE="$APPS_DIR/vscode_direct_install_extentions/ms-toolsai.jupyter.vsix"
+
+# JUPYTER_PACAKGE_FIX_URI="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-toolsai/vsextensions/jupyter/2020.11.358496489/vspackage"
+# curl -Ls "$JUPYTER_PACAKGE_FIX_URI" -o "$TEMPFILE.gz" &&
+#     gunzip -f "$TEMPFILE"
+# assert $? "Falied to download and extract jupyter fix package"
+
+# code-server --install-extension "$TEMPFILE"

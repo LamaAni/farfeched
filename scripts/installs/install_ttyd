@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing remote terminal (ttyd)"
+
+APP_FULL_PATH="$APPS_DIR/ttyd"
+
+REPO_LINK="https://github.com/tsl0922/ttyd"
+REPO_DOWNLOAD_LINK="$(get_github_latest_release_downloads_url "$REPO_LINK")/ttyd_linux.x86_64"
+assert $? "Failed to resolve latest version of ttyd" || exit $?
+
+log "Downloading @ $REPO_DOWNLOAD_LINK -> $APP_FULL_PATH"
+mkdir -p "$APP_FULL_PATH" &&
+    curl "$REPO_DOWNLOAD_LINK" -sL -o "$APP_FULL_PATH/ttyd"
+assert $? "Failed to lownload and install ttyd" || exit $?
+
+log "Linking to /usr/local/bin"
+chmod +x "$APP_FULL_PATH/ttyd" &&
+    sudo ln -sf "$APP_FULL_PATH/ttyd" /usr/local/bin/ttyd
+assert $? "Failed to link $APP_FULL_PATH/ttyd -> /usr/local/bin/ttyd" || exit $?

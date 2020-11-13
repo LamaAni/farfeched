@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+log:sep "Installing k9s"
+
+K9S_PATH="$APPS_DIR/k9s"
+
+log "create the apps directory: $K9S_PATH"
+mkdir -p "$K9S_PATH"
+
+log "Download and extract k9s -> $K9S_PATH"
+K9S_VERSION_DOWNLOADS="$(get_github_latest_release_downloads_url "https://github.com/derailed/k9s")"
+
+log "K9S version: $K9S_VERSION"
+DOWNLOAD_URL="$K9S_VERSION_DOWNLOADS/k9s_Linux_x86_64.tar.gz"
+log "Downloading: $DOWNLOAD_URL"
+curl "$DOWNLOAD_URL" -sL |
+    tar -x --directory "$K9S_PATH" -z
+assert $? "Failed to get k9s, and extract." || exit $?
+
+log "Linking to local/bin"
+sudo ln -sf "$K9S_PATH/k9s" /usr/local/bin/k9s
+assert $? "Failed to link k9s, ${yellow} command not available!${end_color}"
