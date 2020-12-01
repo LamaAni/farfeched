@@ -4,9 +4,23 @@ source /scripts/common.sh
 source /scripts/image/bind_mounts
 assert $? "Failed to bind mounts" || exit $?
 
-log:sep "Starting system services"
-ttyd -p "$TTYD_PORT" "$TTYD_SHELL" &
-code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 &
+log:sep "Starting system services with user: $(whoami)"
+
+if [ "$START_SSH_SERVER" == "true" ]; then
+    sudo mkdir -p /run/sshd
+    sudo /usr/sbin/sshd -e -D &
+    log "Started sshd service"
+fi
+
+if [ "$START_TTYD_SERVER" == "true" ]; then
+    ttyd -p "$TTYD_PORT" "$TTYD_SHELL" &
+    log "Started ttyd service"
+fi
+
+if [ "$START_VSCODE_HTTP_SERVER" == "true" ]; then
+    code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 &
+    log "Started vscode http service"
+fi
 
 log "System ready, waiting for termination signal @ https port 9999"
 nc -lv localhost 9999

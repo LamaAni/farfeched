@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function replace_with_env() {
   # replace any {{ENV_NAME}} with its respective env value.
   value="$1"

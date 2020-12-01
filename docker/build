@@ -1,10 +1,40 @@
 #!/usr/bin/env bash
-type realpath &>/dev/null
-if [ $? ]; then
-    function realpath() {
-        python3 -c "import os; print(os.path.abspath('$1'))"
-    }
-fi
+source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
 
-REPO_PATH="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")" || exit $?
-docker build "$REPO_PATH" -t farfetched:debug -f "$REPO_PATH/docker/Dockerfile"
+args=()
+while [ $# -gt 0 ]; do
+    case $1 in
+    -h | --help)
+        log:help "
+build the docker image
+"
+        exit 0
+        ;;
+    *)
+        # Catch positional arguments.
+        args+=("$1")
+        ;;
+    esac
+    shift
+done
+
+HOST_KEYS_PATH="$REPO_PATH/.ssh_host_keys"
+
+function make_ssh_of_type() {
+    local ssh_type="$1"
+    ssh-keygen -q -N "" -t "${ssh_type}" -f "$HOST_KEYS_PATH/ssh_host_${ssh_type}_key"
+}
+
+if [ ! -f "$HOST_KEYS_PATH/ssh_host_rsa_key" ]; then
+    log:sep "Prepare ssh"
+    log "Create the host persistent ssh keys"
+    rm -rf "$HOST_KEYS_PATH"
+    mkdir -p "$HOST_KEYS_PATH" &&
+        make_ssh_of_type rsa &&
+        make_ssh_of_type ecdsa &&
+        make_ssh_of_type ed25519 &&
+        make_ssh_of_type dsa
+    assert $? "Failed to create ssh keys" || exit $?
+fi
+log:sep "Build"
+docker build "$REPO_PATH" -t farfetched:debug -f "$REPO_PATH/docker/Dockerfile" "${args[@]}"

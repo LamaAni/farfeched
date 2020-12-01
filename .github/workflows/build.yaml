@@ -1,0 +1,79 @@
+name: "Build pull request"
+
+on:
+  pull_request:
+    branches:
+      - "master"
+  release:
+    branches:
+      - "master"
+    types:
+      - created
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Cancel previous runs on same branch"
+        uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: "Checkout the code"
+        uses: actions/checkout@v2
+
+      - name: Get the latest commit info
+        id: last-commit
+        run: bash scripts/ci/get_last_commit_message
+        env:
+          COMMIT_HASH: "${{github.event.after}}"
+          BASE_REF: "${{github.head_ref || github.ref}}"
+
+      - name: Load build args and flags
+        id: commit_args
+        env:
+          EVENT_NAME: "${{github.event_name}}"
+          BASE_REF: "${{github.head_ref || github.ref}}"
+          COMMIT_MESSAGE: "${{steps.last-commit.outputs.message}}"
+        # See help in command for arg output.
+        run: bash scripts/ci/parse_commit_args "$COMMIT_MESSAGE" --event "$EVENT_NAME" --base-ref "$BASE_REF"
+
+      # Buildx config
+      - uses: satackey/action-docker-layer-caching@v0.0.8
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true
+        with:
+          key: "${{steps.commit_args.outputs.cache_key}}"
+          restore-keys: |
+            "${{steps.commit_args.outputs.cache_key_fallback}}"
+
+      # helm
+      - name: "Release: Create helm release (tar the folder)"
+        id: gzip-helm-release
+        run: bash scripts/ci/create_helm_release
+        env:
+          ARCHIVE_PATH: "helm.tar.gz"
+
+      - name: "Release: Upload files"
+        if: ${{steps.commit_args.outputs.release=='true' && steps.commit_args.outputs.no_helm!='true'}}
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: "helm.tar.gz"
+          release-tag: "${{steps.commit_args.outputs.version}}"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Build/push the docker image"
+        if: ${{steps.commit_args.outputs.no_build!='true'}}
+        env:
+          VERSION: "${{steps.commit_args.outputs.version}}"
+          CACHE_DIR: "${{steps.commit_args.outputs.cache_dir}}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_ACCESS_TOKEN: "${{ secrets.DOCKER_ACCESS_TOKEN }}"
+          IMAGE_TAG: "ci-build"
+          IMAGE_VERSION_TAGS: "${{steps.commit_args.outputs.image_version_tags}}"
+          USE_BUILDX: ${{steps.commit_args.outputs.no_buildx!='true'}}
+          DO_PUSH: ${{steps.commit_args.outputs.release=='true'}}
+          PLATFORMS: ${{steps.commit_args.outputs.platforms || ''}}
+        run: bash docker/build

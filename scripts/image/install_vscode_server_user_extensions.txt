@@ -1,6 +1,1 @@
-ms-python.vscode-pylance
-ms-python.python
-ms-kubernetes-tools.vscode-kubernetes-tools
-esbenp.prettier-vscode
-njpwerner.autodocstring
-ban.spellright
+

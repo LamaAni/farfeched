@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function join_by() {
   local sep="$1"
   shift

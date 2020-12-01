@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function read_from_pipe() {
   # checking first line.
   read -t 1 -s first_line || return $?
@@ -5,7 +6,7 @@ function read_from_pipe() {
   while read line; do echo "$line"; done
 }
 
-function get_input(){
+function get_input() {
   local question="$1"
   local default="$2"
   printf "%s" "${magenta}QUESTION:${end_color} $question [$default]: "

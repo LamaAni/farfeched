@@ -1,9 +1,10 @@
-export red=$'\e[1;31m'
-export green=$'\e[1;32m'
-export yellow=$'\e[1;33m'
-export blue=$'\e[1;34m'
-export magenta=$'\e[1;35m'
-export cyan=$'\e[1;36m'
+#!/usr/bin/env bash
+export red=$'\e[0;31m'
+export green=$'\e[0;32m'
+export yellow=$'\e[0;33m'
+export blue=$'\e[0;34m'
+export magenta=$'\e[0;35m'
+export cyan=$'\e[0;36m'
 export light_blue=$'\e[0;94m'
 export deep_green=$'\e[0;32m'
 export dark_magenta=$'\e[0;35m'
@@ -24,6 +25,7 @@ function colorize() {
   local color_regular="$4"
   : ${color_regular:="\e[0m"}
 
-  local to_print=$(regexp_replace "($re)" "$color_val\$1$color_regular" "$value")
+  local to_print=""
+  to_print="$(regexp_replace "($re)" "$color_val\$1${color_regular}" "$value")"
   echo "$to_print"
 }
