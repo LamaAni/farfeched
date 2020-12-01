@@ -1,0 +1,4 @@
+: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
+source "$SCRIPTS_PATH/common.sh"
+
+npm install https://github.com/LamaAni/zlib-bash-config.git

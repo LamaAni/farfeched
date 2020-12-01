@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
 
+FARFETCHED_USERNAME="$(whoami)"
+BIND_SSH_COMMAND="-v \"$HOME/.ssh:/mnt/homelinked_volumes/.ssh\" "
 args=()
 while [ $# -gt 0 ]; do
     case $1 in
@@ -9,12 +11,20 @@ while [ $# -gt 0 ]; do
 Run farfeched as a docker container
 
 FLAGS:
+    --help | -h     Show this help menu
     --build | -b    Build before running
 "
         exit 0
         ;;
     --build | -b)
         export BUILD=1
+        ;;
+    --no-ssh-bind)
+        BIND_SSH_COMMAND=""
+        ;;
+    --username)
+        shift
+        FARFETCHED_USERNAME="$1"
         ;;
     *)
         # Catch positional arguments.
@@ -24,12 +34,19 @@ FLAGS:
     shift
 done
 
+: "${IMAGE_NAME="farfetched"}"
+: "${IMAGE_TAG="debug"}"
+
+export IMAGE_NAME
+export IMAGE_TAG
+
 if [ $BUILD -eq 1 ]; then
-    "$REPO_PATH/docker/build" || exit
+    "$REPO_PATH/docker/build" || exit $?
 fi
 
 log:sep "Starting farfetched service."
 docker run -p 0.0.0.0:9000:9000 -p 0.0.0.0:9001:9001 -p 0.0.0.0:9022:22 \
+    -e "DEV_USER=$FARFETCHED_USERNAME"\
     -v "$REPO_PATH/.local/bound:/workspace" \
-    -v "$HOME/.ssh:/mnt/homelinked_volumes/.ssh" \
+    $BIND_SSH_COMMAND \
     -it --rm farfetched:debug "${args[@]}"

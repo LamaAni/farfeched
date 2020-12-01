@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-: "${SCRIPTS_PATH:="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"}"
-source "$SCRIPTS_PATH/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 : "${WORKSPACE_MOUNT_PATH:="/workspace"}"
 : "${WORKSPACE_STAMP_FILE:="$WORKSPACE_MOUNT_PATH/initialized.stamp"}"
@@ -34,12 +33,13 @@ function process_moves() {
     if [ -f "$WORKSPACE_STAMP_FILE" ]; then
         return
     fi
-    log:sep "Preparing mounts.."
-    log "Logging in as root..."
+    log:sep "Initializing mounts ($WORKSPACE_STAMP_FILE missing in mount)..."
+    log "Validating user sudo access"
     sudo echo "" &>/dev/null
+    assert $? "Failed to login as user"
     log "Binding locals to volume"
     move_to_workspace $BOUND_FOLDERS
-    assert $? "Failed to initialzie binds" || exit $?
+    assert $? "Failed to initialzie binds" || return $?
     touch "$WORKSPACE_STAMP_FILE"
     assert $? "Failed to initialize workspace stamp"
 }
