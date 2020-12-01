@@ -89,11 +89,11 @@ while [ "$#" -gt 0 ]; do
         ;;
     --image-version-tags)
         shift
-        image_version_tags="$1"
+        IMAGE_VERSION_TAGS="$1"
         ;;
     --version)
         shift
-        version="$1"
+        VERSION="$1"
         ;;
     *) ;;
     esac
@@ -103,8 +103,9 @@ done
 : "${REPO:="$(get_cur_repo_name)"}"
 : "${BASE_REF:="$(get_cur_branch)"}"
 : "${BRANCH:="$(basename "$BASE_REF")"}"
-: "${image_version_tags:="$BRANCH"}"
-: "${version:="$BRANCH"}"
+: "${VERSION:="$BRANCH"}"
+: "${IMAGE_VERSION_TAGS:="$VERSION"}"
+: "${IMAGE_VERSION_TAGS:="$BRANCH"}"
 
 if [ -z "$release" ] && [ "$EVENT_NAME" == "release" ]; then
     release="true"
@@ -119,13 +120,13 @@ if [ -z "$release" ]; then
 fi
 
 if [ "$debug" == "true" ]; then
-    image_version_tags="${image_version_tags//"."/"-"}"
-    image_version_tags="debug-$image_version_tags"
+    IMAGE_VERSION_TAGS="${IMAGE_VERSION_TAGS//"."/"-"}"
+    IMAGE_VERSION_TAGS="debug-$IMAGE_VERSION_TAGS"
 fi
-image_version_tags="$(split_versions "." $image_version_tags)"
+IMAGE_VERSION_TAGS="$(split_versions "." $IMAGE_VERSION_TAGS)"
 
 if [ "$EVENT_NAME" == "release" ] && [ "$debug" != "true" ] && [ "$NO_LATEST" != "true" ]; then
-    image_version_tags="$image_version_tags latest"
+    IMAGE_VERSION_TAGS="$IMAGE_VERSION_TAGS latest"
 fi
 
 if [ "$EVENT_NAME" != "release" ]; then
@@ -147,7 +148,7 @@ out no_cache "$no_cache"
 out no_helm "$no_helm"
 out no_build "$no_build"
 out debug "$debug"
-out image_version_tags "$image_version_tags"
+out IMAGE_VERSION_TAGS "$IMAGE_VERSION_TAGS"
 out version "$version"
 out cache_key "$cache_key"
 out cache_key_fallback "$cache_key_fallback"

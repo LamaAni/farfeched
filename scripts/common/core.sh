@@ -77,7 +77,7 @@ function log:warning() {
 function log:sep() {
   echo "$green$LINE_SEPARATOR$end_color"
   if [ "$#" -gt 0 ]; then
-    log_core "${magenta}->${end_color}" "$@"
+    echo "${magenta}->${end_color}" "$@"
   fi
 }
 
