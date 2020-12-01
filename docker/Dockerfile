@@ -6,6 +6,8 @@ RUN apt-get update -yqq && \
     apt-get install -yqq apt-utils && \
     apt-get install -yqq \
     build-essential \
+    openssh-server \
+    openssh-sftp-server \
     gcc \
     lsb-core \
     python3 python3-pip \
@@ -32,20 +34,20 @@ ARG APPS_DIR="/apps"
 ENV APPS_DIR="${APPS_DIR}"
 
 # Installing helper packages extensions
-
-
-RUN apt-get update -y && \
-    /scripts/installs/install_vscode_server &&\
+RUN /scripts/installs/install_vscode_server &&\
     /scripts/installs/install_ttyd && \
     /scripts/installs/install_kubeutils && \
-    /scripts/installs/install_k9s && \
     # /scripts/installs/install_gsfuse && \
-    apt-get clean
-
-RUN apt-get clean
+    /scripts/installs/install_k9s
 
 COPY ./docker/entrypoint /scripts/entrypoint
-RUN chmod +x /scripts/entrypoint
+
+RUN chmod +x /scripts/entrypoint && \
+    apt-get clean
+
+# Configure sshd
+COPY ./docker/sshd_config /etc/ssh/sshd_config
+COPY ./.ssh_host_keys/* /etc/ssh/
 
 #########################
 # Configure the user environment
@@ -60,24 +62,21 @@ ENV WORKSPACE_MOUNT_PATH $WORKSPACE_MOUNT_PATH
 ENV HOME $HOME
 ENV DEV_USER ${USER}
 
-RUN groupadd developers && useradd -ms /bin/bash -g developers $DEV_USER && \
+
+RUN groupadd developers && \
+    useradd -ms /bin/bash -g developers $DEV_USER -p "" && \
     adduser $DEV_USER sudo && \
     echo "$DEV_USER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$DEV_USER" && \
-    chmod 0440 /etc/sudoers.d/$DEV_USER
+    chmod 0440 /etc/sudoers.d/$DEV_USER && \
+    mkdir -p "$WORKSPACE_MOUNT_PATH"
 
 USER ${USER}
-
-
-WORKDIR $WORKSPACE_MOUNT_PATH
-
 WORKDIR ${HOME}
 
 # Change permissions
-RUN ${SCRIPTS_PATH}/image/fix_folder_permissions $APPS_DIR &&\
-    ${SCRIPTS_PATH}/image/install_vscode_server_user_extensions
-
-# Install default bash config
-RUN npm install https://github.com/LamaAni/zlib-bash-config.git && \
+RUN ${SCRIPTS_PATH}/image/fix_folder_permissions "/workspace" &&\
+    ${SCRIPTS_PATH}/image/install_vscode_server_user_extensions && \
+    npm install "https://github.com/LamaAni/zlib-bash-config.git" && \
     echo "/scripts/image/bind_mounts" >> $HOME/.bashrc
 
 ARG TTYD_PORT="9000"
@@ -92,5 +91,13 @@ ENV TTYD_PORT=$TTYD_PORT
 ENV TTYD_SHELL=$TTYD_SHELL
 ENV VSCODE_PORT=$VSCODE_PORT
 ENV EXTRA_HOMELINKED_VOLUMES=$EXTRA_HOMELINKED_VOLUMES
+
+ARG START_VSCODE_HTTP_SERVER="true"
+ARG START_SSH_SERVER="true"
+ARG START_TTYD_SERVER="true"
+
+ENV START_VSCODE_HTTP_SERVER=${START_VSCODE_HTTP_SERVER}
+ENV START_SSH_SERVER=${START_SSH_SERVER}
+ENV START_TTYD_SERVER=${START_TTYD_SERVER}
 
 CMD [ "/scripts/entrypoint" ]

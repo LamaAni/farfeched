@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function regexp_replace() {
   type "node" &>>/dev/null
   local dose_not_have_node=$?

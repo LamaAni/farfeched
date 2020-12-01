@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-: ${SCRIPTS_PATH:="$(dirname $(dirname $(realpath "$BASH_SOURCE[0]")))"}
-source "$SCRIPTS_PATH/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 : "${IS_DRY_RUN:="false"}"
 function out() {

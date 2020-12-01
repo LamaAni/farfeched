@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function is_chromeos() {
   if [ -d '/mnt/chromeos' ]; then
     echo "true"

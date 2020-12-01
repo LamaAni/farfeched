@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-: ${SCRIPTS_PATH:="$(dirname $(dirname $(realpath "$BASH_SOURCE[0]")))"}
-source "$SCRIPTS_PATH/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 : ${REPO_PATH="$(realpath "$SCRIPTS_PATH/../")"}
 : ${ARCHIVE_PATH="/tmp/helm.tar.gz"}

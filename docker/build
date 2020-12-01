@@ -1,10 +1,95 @@
 #!/usr/bin/env bash
-type realpath &>/dev/null
-if [ $? ]; then
-    function realpath() {
-        python3 -c "import os; print(os.path.abspath('$1'))"
-    }
+source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
+
+: "${IMAGE_NAME="farfetched"}"
+: "${IMAGE_TAG="debug"}"
+
+args=()
+while [ $# -gt 0 ]; do
+    case $1 in
+    -h | --help)
+        log:help "
+build the docker image
+ARGS:
+    --image-tag             The main image tag
+    --image-version-tags    A list of version tags to use.
+FLAGS:
+    -h | --help     Show this help menu
+    --push          Push to the docker repository.
+"
+        exit 0
+        ;;
+    --push)
+        DO_PUSH="true"
+        ;;
+    --image-tag)
+        shift
+        IMAGE_TAG="$1"
+        ;;
+    --image-version-tags)
+        shift
+        IMAGE_VERSION_TAGS="$1"
+        ;;
+    --image-name)
+        shift
+        IMAGE_NAME="$1"
+        ;;
+    *)
+        # Catch positional arguments.
+        args+=("$1")
+        ;;
+    esac
+    shift
+done
+
+# Check for docker login
+if [ -n "$DOCKER_ACCESS_TOKEN" ]; then
+    log:sep "Logging in to docker using $DOCKER_USERNAME:$DOCKER_ACCESS_TOKEN"
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
 fi
 
-REPO_PATH="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")" || exit $?
-docker build "$REPO_PATH" -t farfetched:debug -f "$REPO_PATH/docker/Dockerfile"
+HOST_KEYS_PATH="$REPO_PATH/.ssh_host_keys"
+
+if [ -n "$DOCKER_USERNAME" ]; then
+    IMAGE_NAME="$DOCKER_USERNAME/$IMAGE_NAME"
+fi
+
+function make_ssh_of_type() {
+    local ssh_type="$1"
+    ssh-keygen -q -N "" -t "${ssh_type}" -f "$HOST_KEYS_PATH/ssh_host_${ssh_type}_key"
+}
+
+if [ ! -f "$HOST_KEYS_PATH/ssh_host_rsa_key" ]; then
+    log:sep "Prepare ssh"
+    log "Create the host persistent ssh keys"
+    rm -rf "$HOST_KEYS_PATH"
+    mkdir -p "$HOST_KEYS_PATH" &&
+        make_ssh_of_type rsa &&
+        make_ssh_of_type ecdsa &&
+        make_ssh_of_type ed25519 &&
+        make_ssh_of_type dsa
+    assert $? "Failed to create ssh keys" || exit $?
+fi
+
+log:sep "Build"
+ALL_TAGS=("$IMAGE_TAG")
+if [ -n "$IMAGE_VERSION_TAGS" ]; then
+    ALL_TAGS+=($IMAGE_VERSION_TAGS)
+fi
+
+log "Tagging with"
+ALL_TAGS_COMMAND=""
+for tag in "${ALL_TAGS[@]}"; do
+    echo " - ${IMAGE_NAME}:$tag"
+    ALL_TAGS_COMMAND="$ALL_TAGS_COMMAND -t ${IMAGE_NAME}:$tag"
+done
+
+docker build "$REPO_PATH" $ALL_TAGS_COMMAND -f "$REPO_PATH/docker/Dockerfile" "${args[@]}"
+
+if [ "$DO_PUSH" == "true" ]; then
+    for tag in "${ALL_TAGS[@]}"; do
+        IMAGE_FULLNAME="$IMAGE_NAME:$tag"
+        log:sep "Pushing $IMAGE_FULLNAME"
+        docker push "$IMAGE_FULLNAME"
+    done
+fi

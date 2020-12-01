@@ -1,5 +1,6 @@
 .local/
 .vscode/
+.ssh_host_keys/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
