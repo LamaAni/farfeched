@@ -10,6 +10,13 @@ build the docker image
 "
         exit 0
         ;;
+    --push)
+        DO_PUSH=1
+        ;;
+    --tags)
+        shift
+        TAGS="$1"
+        ;;
     *)
         # Catch positional arguments.
         args+=("$1")

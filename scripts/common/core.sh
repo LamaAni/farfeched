@@ -21,23 +21,63 @@ function assert() {
   fi
 }
 
-function warn() {
+function assert_warning() {
   local err="$1"
   : ${err:=0}
   if [ "$err" -ne 0 ]; then
-    log_core "${yellow}WARNING${end_color}" "$2" 1>&2
+    log_core "${yellow}WARNING${end_color}" "$2" >>/dev/stderr
     return $err
   fi
 }
 
-function log() {
+function warn() {
+  assert_warning "$@"
+  return $?
+}
+
+export LINE_SEPARATOR='------------------------------------'
+
+function assert() {
+  local err="$1"
+  : ${err:=0}
+  if [ "$err" -ne 0 ]; then
+    log_core "${red}ERROR${end_color}" "$2" >>/dev/stderr
+    return $err
+  fi
+}
+
+# ------------------
+
+function log:info() {
   log_core "${green}INFO${end_color}" "$@"
 }
 
+function log:warn() {
+  log_core "${yellow}WARNING${end_color}" "$@"
+}
+
+function log:error() {
+  log_core "${red}ERROR${end_color}" "$@"
+}
+
+function log:trace() {
+  log_core "${magenta}TRACE${end_color}" "$@"
+}
+
+function log() {
+  log:info "$@"
+}
+
+function log:warning() {
+  log:warn "$@"
+}
+
+: "${LINE_SEPARATOR:="----------------------------"}"
+
 function log:sep() {
-  echo "${green}----------------------------${end_color}"
+  echo "$green$LINE_SEPARATOR$end_color"
   if [ "$#" -gt 0 ]; then
-    echo "${dark_magenta}>${end_color}" "$@"
+    log_core "${magenta}->${end_color}" "$@"
   fi
 }
 
