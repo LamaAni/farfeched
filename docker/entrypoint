@@ -18,7 +18,10 @@ if [ "$START_TTYD_SERVER" == "true" ]; then
 fi
 
 if [ "$START_VSCODE_HTTP_SERVER" == "true" ]; then
-    code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 &
+    if [ -n "$CODE_SERVER_HTTPS_CERTIFICATE" ]; then
+        CODE_SERVER_HTTPS_CERTIFICATE="--cert $CODE_SERVER_HTTPS_CERTIFICATE"
+    fi
+    code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 $CODE_SERVER_HTTPS_CERTIFICATE &
     log "Started vscode http service"
 fi
 

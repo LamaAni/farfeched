@@ -22,6 +22,9 @@ RUN apt-get update -yqq && \
     wget \
     ##
     && \
+    apt-get clean \
+    ##
+    && \
     localedef -i en_US -f UTF-8 en_US.UTF-8
 
 # Adding scripts
@@ -38,21 +41,23 @@ RUN /scripts/installs/install_vscode_server &&\
     /scripts/installs/install_ttyd && \
     /scripts/installs/install_kubeutils && \
     # /scripts/installs/install_gsfuse && \
-    /scripts/installs/install_k9s
+    /scripts/installs/install_k9s &&\
+    apt-get clean
 
 COPY ./docker/entrypoint /scripts/entrypoint
 
-RUN chmod +x /scripts/entrypoint && \
-    apt-get clean
 
 # Configure sshd
 COPY ./docker/sshd_config /etc/ssh/sshd_config
 COPY ./.ssh_host_keys/* /etc/ssh/
 
+RUN chmod +x /scripts/entrypoint && \
+    chmod -R 0600 /etc/ssh/
+
 #########################
 # Configure the user environment
 
-ARG USER=me
+ARG USER=developer
 ARG HOME=/home/${USER}
 ARG WORKSPACE_MOUNT_PATH="/workspace"
 ARG VSCODE_EXTENSIONS=""
@@ -74,15 +79,18 @@ USER ${USER}
 WORKDIR ${HOME}
 
 # Change permissions
-RUN ${SCRIPTS_PATH}/image/fix_folder_permissions "/workspace" &&\
-    ${SCRIPTS_PATH}/image/install_vscode_server_user_extensions && \
-    npm install "https://github.com/LamaAni/zlib-bash-config.git" && \
-    echo "/scripts/image/bind_mounts" >> $HOME/.bashrc
+RUN ${SCRIPTS_PATH}/image/fix_folder_permissions "/workspace" && \
+    ${SCRIPTS_PATH}/image/install_vscode_server_user_extensions
+
+# Configure vscode
+COPY ./docker/vscode_default_settings.json  /home/${USER}/.config/Code/User/settings.json
+COPY ./docker/vscode_default_settings.json  /home/${USER}/.local/share/code-server/User/settings.json
 
 ARG TTYD_PORT="9000"
 ARG TTYD_SHELL="bash"
 ARG VSCODE_PORT="9001"
 ARG EXTRA_HOMELINKED_VOLUMES="/mnt/homelinked_volumes"
+ARG CODE_SERVER_HTTPS_CERTIFICATE=""
 
 EXPOSE $TTYD_PORT
 EXPOSE $VSCODE_PORT
@@ -91,6 +99,7 @@ ENV TTYD_PORT=$TTYD_PORT
 ENV TTYD_SHELL=$TTYD_SHELL
 ENV VSCODE_PORT=$VSCODE_PORT
 ENV EXTRA_HOMELINKED_VOLUMES=$EXTRA_HOMELINKED_VOLUMES
+ENV CODE_SERVER_HTTPS_CERTIFICATE="${CODE_SERVER_HTTPS_CERTIFICATE}"
 
 ARG START_VSCODE_HTTP_SERVER="true"
 ARG START_SSH_SERVER="true"

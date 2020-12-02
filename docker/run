@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
 
+FARFETCHED_USERNAME="$(whoami)"
+BUILD=1
+USERNAME="$(whoami)"
 args=()
 while [ $# -gt 0 ]; do
     case $1 in
@@ -8,28 +11,45 @@ while [ $# -gt 0 ]; do
         log:help "
 Run farfeched as a docker container
 
+ARGS:
+    --user          The dev username (requires build if changed)
 FLAGS:
-    --build | -b    Build before running
+    --help | -h     Show this help menu
+    --no-build      Do not build.
 "
         exit 0
         ;;
-    --build | -b)
-        export BUILD=1
+    --no-build)
+        BUILD=0
+        ;;
+    --user)
+        shift
+        USERNAME="$1"
+        ;;
+    -*)
+        assert 2 "Unknown option $1" || exit $?
         ;;
     *)
         # Catch positional arguments.
-        args+=("$1")
+        assert 2 "Unknown input $1" || exit $?
         ;;
     esac
     shift
 done
 
+: "${IMAGE_NAME="farfetched"}"
+: "${IMAGE_TAG="debug"}"
+
+log "Initializing farfetched run for $USERNAME"
+
+export IMAGE_NAME
+export IMAGE_TAG
+
 if [ $BUILD -eq 1 ]; then
-    "$REPO_PATH/docker/build" || exit
+    "$REPO_PATH/docker/build" "${args[@]}" --build-arg "USER=$USERNAME" || exit $?
 fi
 
 log:sep "Starting farfetched service."
 docker run -p 0.0.0.0:9000:9000 -p 0.0.0.0:9001:9001 -p 0.0.0.0:9022:22 \
     -v "$REPO_PATH/.local/bound:/workspace" \
-    -v "$HOME/.ssh:/mnt/homelinked_volumes/.ssh" \
-    -it --rm farfetched:debug "${args[@]}"
+    -it --rm ${IMAGE_NAME}:${IMAGE_TAG}
