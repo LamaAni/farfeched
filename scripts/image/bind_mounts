@@ -4,7 +4,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 : "${WORKSPACE_MOUNT_PATH:="/workspace"}"
 : "${WORKSPACE_STAMP_FILE:="$WORKSPACE_MOUNT_PATH/initialized.stamp"}"
 : "${CONTAINER_STAMP_FILE:="/tmp/initialized.stamp"}"
-: "${BOUND_FOLDERS:="/home"}"
+: "${BOUND_FOLDERS:="/home/$DEV_USER"}"
 
 function link_to_workspace() {
     for folder in "$@"; do

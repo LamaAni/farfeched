@@ -84,12 +84,12 @@ for tag in "${ALL_TAGS[@]}"; do
     ALL_TAGS_COMMAND="$ALL_TAGS_COMMAND -t ${IMAGE_NAME}:$tag"
 done
 
-docker build "$REPO_PATH" $ALL_TAGS_COMMAND -f "$REPO_PATH/docker/Dockerfile" "${args[@]}"
+docker build "$REPO_PATH" $ALL_TAGS_COMMAND -f "$REPO_PATH/docker/Dockerfile" "${args[@]}" || exit $?
 
 if [ "$DO_PUSH" == "true" ]; then
     for tag in "${ALL_TAGS[@]}"; do
         IMAGE_FULLNAME="$IMAGE_NAME:$tag"
         log:sep "Pushing $IMAGE_FULLNAME"
-        docker push "$IMAGE_FULLNAME"
+        docker push "$IMAGE_FULLNAME" || exit $?
     done
 fi
