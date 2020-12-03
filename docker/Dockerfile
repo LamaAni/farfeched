@@ -11,6 +11,7 @@ RUN apt-get update -yqq && \
     gcc \
     lsb-core \
     python3 python3-pip \
+    python2 \
     nodejs \
     htop \
     netcat \
