@@ -4,7 +4,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 : "${WORKSPACE_MOUNT_PATH:="/workspace"}"
 : "${WORKSPACE_STAMP_FILE:="$WORKSPACE_MOUNT_PATH/initialized.stamp"}"
 : "${CONTAINER_STAMP_FILE:="/tmp/initialized.stamp"}"
-: "${BOUND_FOLDERS:="/home/$DEV_USER"}"
+: "${BOUND_FOLDERS:="/home/$DEV_USER $PRESIST_FOLDERS"}"
+
+BOUND_FOLDERS="$(trim "$BOUND_FOLDERS")"
 
 function link_to_workspace() {
     for folder in "$@"; do
@@ -56,24 +58,8 @@ function process_links() {
     assert $? "Failed to initialize container stamp"
 }
 
-function process_mount_homelinks() {
-    if [ ! -d "$EXTRA_HOMELINKED_VOLUMES" ]; then
-        return
-    fi
-
-    for f in $EXTRA_HOMELINKED_VOLUMES/*; do
-        if [ -d "$f" ]; then
-            # $f is a directory
-            local source_folder="$(realpath $f)"
-            local target_folder="$HOME/$(basename $source_folder)"
-            ln -sf "$source_folder" "$target_folder"
-            assert $? "Failed to link homelink @ $source_folder -> $target_folder" || exit $?
-        fi
-    done
-}
-
 STARTED_AT="$(realpath "$PWD")"
 cd /
-process_moves && process_links && process_mount_homelinks || exit $?
+process_moves && process_links || exit $?
 cd "$STARTED_AT"
 assert $? "Failed to move back to original directory"
