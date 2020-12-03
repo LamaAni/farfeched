@@ -13,6 +13,7 @@ Run farfeched as a docker container
 
 ARGS:
     --user          The dev username (requires build if changed)
+    --presist       A list of folders to presist.
 FLAGS:
     --help | -h     Show this help menu
     --no-build      Do not build.
@@ -25,6 +26,10 @@ FLAGS:
     --user)
         shift
         USERNAME="$1"
+        ;;
+    --presist)
+        shift
+        PRESIST_FOLDERS="$1"
         ;;
     -*)
         assert 2 "Unknown option $1" || exit $?
@@ -46,7 +51,7 @@ export IMAGE_NAME
 export IMAGE_TAG
 
 if [ $BUILD -eq 1 ]; then
-    "$REPO_PATH/docker/build" "${args[@]}" --build-arg "USER=$USERNAME" || exit $?
+    "$REPO_PATH/docker/build" "${args[@]}" --build-arg USER="$USERNAME" --build-arg PRESIST_FOLDERS="$PRESIST_FOLDERS" || exit $?
 fi
 
 log:sep "Starting farfetched service."

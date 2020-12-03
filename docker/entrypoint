@@ -6,24 +6,29 @@ assert $? "Failed to bind mounts" || exit $?
 
 log:sep "Starting system services with user: $(whoami)"
 
+: "${SSH_PORT:="22"}"
+: "${TTYD_PORT:="9000"}"
+: "${VSCODE_PORT:="9001"}"
+: "${TERMINATE_PORT:="9999"}"
+
 if [ "$START_SSH_SERVER" == "true" ]; then
     sudo mkdir -p /run/sshd
-    sudo /usr/sbin/sshd -e -D &
-    log "Started sshd service"
+    sudo /usr/sbin/sshd -p "$SSH_PORT" -e -D &
+    log "Started sshd service @ ${cyan}localhost:$SSH_PORT${ec}"
 fi
 
 if [ "$START_TTYD_SERVER" == "true" ]; then
     ttyd -p "$TTYD_PORT" "$TTYD_SHELL" &
-    log "Started ttyd service"
+    log "Started ttyd service @ ${cyan}localhost:$TTYD_PORT${ec}"
 fi
 
 if [ "$START_VSCODE_HTTP_SERVER" == "true" ]; then
-    if [ -n "$CODE_SERVER_HTTPS_CERTIFICATE" ]; then
-        CODE_SERVER_HTTPS_CERTIFICATE="--cert $CODE_SERVER_HTTPS_CERTIFICATE"
+    if [ -n "$VSCODE_HTTPS_CERTIFICATE" ]; then
+        VSCODE_HTTPS_CERTIFICATE="--cert $VSCODE_HTTPS_CERTIFICATE"
     fi
-    code-server --disable-telemetry --auth none --bind-addr 0.0.0.0:9001 $CODE_SERVER_HTTPS_CERTIFICATE &
-    log "Started vscode http service"
+    code-server --disable-telemetry --auth none --bind-addr "0.0.0.0:$VSCODE_PORT" $VSCODE_HTTPS_CERTIFICATE &
+    log "Started vscode http service @ ${cyan}localhost:$VSCODE_PORT${ec}"
 fi
 
-log "System ready, waiting for termination signal @ https port 9999"
-nc -lv localhost 9999
+log "System ready, waiting for termination signal @ https port $TERMINATE_PORT"
+nc -lv localhost "$TERMINATE_PORT"
