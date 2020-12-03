@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+log:sep "Setting up vscode @ $HOME"
+
+mkdir -p $HOME/.config/Code/User &&
+    mkdir -p $HOME/.local/share/code-server/User &&
+    cp /defaults/vscode_default_settings.json "$HOME/.config/Code/User/settings.json" &&
+    cp /defaults/vscode_default_settings.json "$HOME/.local/share/code-server/User/settings.json"
+assert $? "Failed to create default vscode settings" || exit $?
