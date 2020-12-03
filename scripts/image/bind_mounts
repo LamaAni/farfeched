@@ -13,16 +13,9 @@ function get_stamp_file_name() {
     echo "$1/$fname"
 }
 
-function is_stamped() {
-    local folder="$1"
-    local stamp_file="$(get_stamp_file_name "$folder")"
-    if [ -f "$stamp_file" ]; then
-        return 1
-    fi
-    log "Stamping bind directory @ $stamp_file"
-    echo "$(date)" >"$stamp_file"
-    # assert $? "Failed to stamp bind directory @ $stamp_file" || exit $?
-    return 0
+function as_mounted_folder() {
+    local folder="$(basename "$1")"
+    echo "$WORKSPACE_MOUNT_PATH/$folder"
 }
 
 function link_to_workspace() {
@@ -31,14 +24,15 @@ function link_to_workspace() {
         if [ -z "$folder" ]; then
             continue
         fi
-        # if was stamped then continue.
-        is_stamped "$folder" || continue
-
         if [ -d "$folder" ] || [ -f "$folder" ]; then
             sudo rm -R "$folder"
             assert $? "Failed to remove $folder" || return $?
         fi
-        sudo ln -sf "$WORKSPACE_MOUNT_PATH/$(basename "$folder")" "$folder"
+
+        local mounted_folder="$(as_mounted_folder "$folder")"
+
+        log "Linking $mounted_folder -> $folder"
+        sudo ln -sf "$mounted_folder" "$folder"
         assert $? "Failed to link workspace folder" || return $?
     done
 }
@@ -50,13 +44,18 @@ function move_to_workspace() {
             continue
         fi
 
-        # if was stamped then continue.
-        is_stamped "$folder" || continue
+        local mounted_folder="$(as_mounted_folder "$folder")"
 
-        log "Binding $folder ..."
+        # if was stamped then continue.
+        if [ -d "$mounted_folder" ]; then
+            log "Skipped moving $folder, exists."
+            continue
+        fi
+
+        log "Copying $folder -> $mounted_folder"
         if [ -d "$folder" ] || [ -f "$folder" ]; then
-            sudo mv "$folder" "$WORKSPACE_MOUNT_PATH"
-            assert $? "Failed to move $folder to workdir" || return $?
+            cp -a "$folder" "$WORKSPACE_MOUNT_PATH"
+            assert $? "Failed to move $folder to $mounted_folder" || return $?
         else
             log:warning "Skipping $folder, not found"
         fi
@@ -64,21 +63,20 @@ function move_to_workspace() {
 }
 
 function process_moves() {
-    log:sep "Initializing mounts ($WORKSPACE_STAMP_FILE missing in mount)..."
-    log "Validating user sudo access"
-    sudo echo "" &>/dev/null
-    assert $? "Failed to login as user"
-    log "Binding locals to volume"
     move_to_workspace $BOUND_FOLDERS
     assert $? "Failed to initialzie binds" || return $?
 }
 
 function process_links() {
-    log "Linking mounts.."
-    sudo echo "" &>/dev/null
     link_to_workspace $BOUND_FOLDERS
     assert $? "Failed to link workspace" || exit $?
 }
+
+log:sep "Initializing mounts ($INITIALIZED_STAMP_FILE_NAME)..."
+
+log "Validating user sudo access"
+sudo echo "" &>/dev/null
+assert $? "Failed to login as user"
 
 STARTED_AT="$(realpath "$PWD")"
 cd /

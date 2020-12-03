@@ -11,22 +11,17 @@ assert $? "Failed to create user. Username not defined" || exit $?
 
 log:sep "Creating user $USERNAME"
 
-groupadd developers &&
-    useradd -ms /bin/bash -g developers $USERNAME -p "$PASSWORD" &&
+useradd -ms /bin/bash -g developers $USERNAME -p "$PASSWORD" &&
     adduser $USERNAME sudo &&
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >"/etc/sudoers.d/$USERNAME" &&
     chmod 0440 /etc/sudoers.d/$USERNAME
 assert $? "Failed to create user"
-
-log "Setting up vscode" &&
-    mkdir -p $HOME/.config/Code/User &&
-    mkdir -p $HOME/.local/share/code-server/User &&
-    cp /defaults/vscode_default_settings.json $HOME/.config/Code/User &&
-    cp /defaults/vscode_default_settings.json $HOME/.local/share/code-server/User
-assert $? "Failed to create default vscode settings" || exit $?
 
 su -c '"${SCRIPTS_PATH}/image/fix_folder_permissions" "/workspace"' "$USERNAME"
 assert $? "Failed to adjust permissions" || exit $?
 
 su -c '"${SCRIPTS_PATH}/image/install_vscode_server_user_extensions"' "$USERNAME"
 assert $? "Failed to install vscode server extentions" || exit $?
+
+su -c '"${SCRIPTS_PATH}/image/configure_vscode_defaults"' "$USERNAME"
+assert $? "Failed to adjust permissions" || exit $?
