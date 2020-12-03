@@ -2,14 +2,38 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 : "${WORKSPACE_MOUNT_PATH:="/workspace"}"
-: "${WORKSPACE_STAMP_FILE:="$WORKSPACE_MOUNT_PATH/initialized.stamp"}"
-: "${CONTAINER_STAMP_FILE:="/tmp/initialized.stamp"}"
-: "${BOUND_FOLDERS:="/home/$DEV_USER $PRESIST_FOLDERS"}"
+: "${INITIALIZED_STAMP_FILE_NAME:="initialized.stamp"}"
+: "${BOUND_FOLDERS:="$HOME $PRESIST_FOLDERS"}"
 
 BOUND_FOLDERS="$(trim "$BOUND_FOLDERS")"
 
+function get_stamp_file_name() {
+    local fname="$INITIALIZED_STAMP_FILE_NAME"
+    : "${fname:="initialized.stamp"}"
+    echo "$1/$fname"
+}
+
+function is_stamped() {
+    local folder="$1"
+    local stamp_file="$(get_stamp_file_name "$folder")"
+    if [ -f "$stamp_file" ]; then
+        return 1
+    fi
+    log "Stamping bind directory @ $stamp_file"
+    echo "$(date)" >"$stamp_file"
+    # assert $? "Failed to stamp bind directory @ $stamp_file" || exit $?
+    return 0
+}
+
 function link_to_workspace() {
     for folder in "$@"; do
+        folder="$(trim "$folder")"
+        if [ -z "$folder" ]; then
+            continue
+        fi
+        # if was stamped then continue.
+        is_stamped "$folder" || continue
+
         if [ -d "$folder" ] || [ -f "$folder" ]; then
             sudo rm -R "$folder"
             assert $? "Failed to remove $folder" || return $?
@@ -21,6 +45,14 @@ function link_to_workspace() {
 
 function move_to_workspace() {
     for folder in "$@"; do
+        folder="$(trim "$folder")"
+        if [ -z "$folder" ]; then
+            continue
+        fi
+
+        # if was stamped then continue.
+        is_stamped "$folder" || continue
+
         log "Binding $folder ..."
         if [ -d "$folder" ] || [ -f "$folder" ]; then
             sudo mv "$folder" "$WORKSPACE_MOUNT_PATH"
@@ -32,9 +64,6 @@ function move_to_workspace() {
 }
 
 function process_moves() {
-    if [ -f "$WORKSPACE_STAMP_FILE" ]; then
-        return
-    fi
     log:sep "Initializing mounts ($WORKSPACE_STAMP_FILE missing in mount)..."
     log "Validating user sudo access"
     sudo echo "" &>/dev/null
@@ -42,20 +71,13 @@ function process_moves() {
     log "Binding locals to volume"
     move_to_workspace $BOUND_FOLDERS
     assert $? "Failed to initialzie binds" || return $?
-    touch "$WORKSPACE_STAMP_FILE"
-    assert $? "Failed to initialize workspace stamp"
 }
 
 function process_links() {
-    if [ -f "$CONTAINER_STAMP_FILE" ]; then
-        return
-    fi
     log "Linking mounts.."
     sudo echo "" &>/dev/null
     link_to_workspace $BOUND_FOLDERS
     assert $? "Failed to link workspace" || exit $?
-    touch "$CONTAINER_STAMP_FILE"
-    assert $? "Failed to initialize container stamp"
 }
 
 STARTED_AT="$(realpath "$PWD")"
