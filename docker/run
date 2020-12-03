@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
 
-FARFETCHED_USERNAME="$(whoami)"
 BUILD=1
 USERNAME="$(whoami)"
 args=()

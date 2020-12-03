@@ -51,8 +51,9 @@ COPY ./docker/entrypoint /scripts/entrypoint
 COPY ./docker/sshd_config /etc/ssh/sshd_config
 COPY ./.ssh_host_keys/* /etc/ssh/
 
-RUN chmod +x /scripts/entrypoint && \
-    chmod -R 0600 /etc/ssh/
+RUN chmod +x /scripts/entrypoint /scripts/image/create_farfetched_user && \
+    chmod -R 0600 /etc/ssh/ && \
+    ln -sf /scripts/image/create_farfetched_user /usr/bin/create_farfetched_user
 
 #########################
 # Configure the user environment
@@ -65,26 +66,13 @@ ARG VSCODE_EXTENSIONS=""
 ENV VSCODE_EXTENSIONS="$VSCODE_EXTENSIONS"
 ENV WORKSPACE_MOUNT_PATH $WORKSPACE_MOUNT_PATH
 ENV HOME $HOME
-ENV DEV_USER ${USER}
+ENV DEFAULT_FARFETCHED_USERNAME=${USER}
 
+WORKDIR /defaults
+COPY ./docker/vscode_default_settings.json  .
+COPY ./docker/vscode_default_settings.json  .
 
-RUN groupadd developers && \
-    useradd -ms /bin/bash -g developers $DEV_USER -p "" && \
-    adduser $DEV_USER sudo && \
-    echo "$DEV_USER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$DEV_USER" && \
-    chmod 0440 /etc/sudoers.d/$DEV_USER && \
-    mkdir -p "$WORKSPACE_MOUNT_PATH"
-
-USER ${USER}
-WORKDIR ${HOME}
-
-# Change permissions
-RUN ${SCRIPTS_PATH}/image/fix_folder_permissions "/workspace" && \
-    ${SCRIPTS_PATH}/image/install_vscode_server_user_extensions
-
-# Configure vscode
-COPY ./docker/vscode_default_settings.json  /home/${USER}/.config/Code/User/settings.json
-COPY ./docker/vscode_default_settings.json  /home/${USER}/.local/share/code-server/User/settings.json
+RUN create_farfetched_user ${DEFAULT_FARFETCHED_USERNAME}
 
 ARG TERMINATE_PORT="9999"
 ARG SSH_PORT="22"
@@ -112,5 +100,8 @@ EXPOSE ${TERMINATE_PORT}
 EXPOSE $SSH_PORT
 EXPOSE $TTYD_PORT
 EXPOSE $VSCODE_PORT
+
+USER ${USER}
+WORKDIR ${HOME}
 
 CMD [ "/scripts/entrypoint" ]
