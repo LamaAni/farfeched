@@ -5,7 +5,7 @@ from typing import Mapping
 VSCODE_SERVER_FOLDER = os.environ.get("VSCODE_SERVER_FOLDER", None)
 assert VSCODE_SERVER_FOLDER is not None, ValueError("VSCODE_SERVER_FOLDER env was not defined")
 
-PRODUCT_JSON_SOURCE_PATH = f"{VSCODE_SERVER_FOLDER}/lib/vscode/product.json"
+PRODUCT_JSON_SOURCE_PATH = f"{VSCODE_SERVER_FOLDER}/product.json"
 PRODUCT_JSON_EXTEND_PATH = f"{__file__}.product.extend.json"
 
 

@@ -10,6 +10,9 @@ log:sep "Starting system services with user: $(whoami)"
 : "${TTYD_PORT:="9000"}"
 : "${VSCODE_PORT:="9001"}"
 : "${TERMINATE_PORT:="9999"}"
+: "${WORKSPACE_MOUNT_PATH:="/workspace"}"
+
+export HOME="$WORKSPACE_MOUNT_PATH/$(whoami)"
 
 if [ "$START_SSH_SERVER" == "true" ]; then
     sudo mkdir -p /run/sshd
