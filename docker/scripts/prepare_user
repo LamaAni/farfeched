@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+source "$SCRIPTS_PATH/common.sh"
+
+# ls "$WORKSPACE_MOUNT_PATH"
+check_access "$WORKSPACE_MOUNT_PATH" $ >/dev/null
+if [ $? ] && [ -z "$(sudo mount | grep $WORKSPACE_MOUNT_PATH)" ]; then
+    "${SCRIPTS_PATH}/image/fix_folder_permissions" "$WORKSPACE_MOUNT_PATH"
+    assert $? "Failed to adjust permissions" || exit $?
+fi
+
+log:sep "Setting up vscode @ $HOME"
+
+if [ -n "$VSCODE_USER_EXTENSIONS" ]; then
+    "$SCRIPTS_PATH/install_vscode_extentsions" "$VSCODE_USER_EXTENSIONS"
+fi
+
+mkdir -p "$HOME/.config/Code/User" &&
+    mkdir -p "$HOME/.local/share/code-server/User" &&
+    cp /defaults/vscode_default_settings.json "$HOME/.config/Code/User/settings.json" &&
+    cp /defaults/vscode_default_settings.json "$HOME/.local/share/code-server/User/settings.json"
+assert $? "Failed to create default vscode settings" || exit $?

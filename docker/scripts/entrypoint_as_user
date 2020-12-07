@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-source /scripts/common.sh
+source "$SCRIPTS_PATH/common.sh"
 
-source /scripts/image/bind_mounts
+# Bind the mounts.
+source "$SCRIPTS_PATH/image/bind_mounts"
 assert $? "Failed to bind mounts" || exit $?
 
 log:sep "Starting system services with user: $(whoami)"
