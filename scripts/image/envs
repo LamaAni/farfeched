@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-: "${APPS_DIR:="/usr/local/apps"}"

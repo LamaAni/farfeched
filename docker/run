@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../scripts/common.sh"
 
-BUILD=1
+BUILD=0
+DO_MOUNT=1
 USERNAME="$(whoami)"
 args=()
 while [ $# -gt 0 ]; do
@@ -15,16 +16,20 @@ ARGS:
     --presist       A list of folders to presist.
 FLAGS:
     --help | -h     Show this help menu
-    --no-build      Do not build.
+    --build         Do not build.
+    --no-mount      Do not mount local.
 "
         exit 0
         ;;
-    --no-build)
-        BUILD=0
+    --build)
+        BUILD=1
         ;;
     --user)
         shift
         USERNAME="$1"
+        ;;
+    --no-mount)
+        DO_MOUNT=0
         ;;
     --presist)
         shift
@@ -44,16 +49,19 @@ done
 : "${IMAGE_NAME="farfetched"}"
 : "${IMAGE_TAG="debug"}"
 
-log "Initializing farfetched run for $USERNAME"
-
 export IMAGE_NAME
 export IMAGE_TAG
 
 if [ $BUILD -eq 1 ]; then
-    "$REPO_PATH/docker/build" "${args[@]}" --build-arg USER="$USERNAME" --build-arg PRESIST_FOLDERS="$PRESIST_FOLDERS" || exit $?
+    "$REPO_PATH/docker/build" "${args[@]}" || exit $?
 fi
 
-log:sep "Starting farfetched service."
+VOLUME_COMMAND='-v '"$REPO_PATH/.local/bound:/workspace"
+if [ $DO_MOUNT -eq 0 ]; then
+    VOLUME_COMMAND=""
+fi
+
 docker run -p 0.0.0.0:9000:9000 -p 0.0.0.0:9001:9001 -p 0.0.0.0:9022:22 \
-    -v "$REPO_PATH/.local/bound:/workspace" \
-    -it --rm ${IMAGE_NAME}:${IMAGE_TAG}
+    $VOLUME_COMMAND \
+    --env USERNAME="$USERNAME" \
+    -it --rm "${IMAGE_NAME}:${IMAGE_TAG}"

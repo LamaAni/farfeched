@@ -6,10 +6,6 @@ SCRIPTS_PATH="$(realpath "$SCRIPTS_PATH")"
 export SCRIPTS_PATH
 
 # -----------------------
-# envs
-source "$SCRIPTS_PATH/image/envs"
-
-# -----------------------
 # Loading
 
 for file in $SCRIPTS_PATH/common/*; do

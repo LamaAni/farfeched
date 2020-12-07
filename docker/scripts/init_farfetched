@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 source "$SCRIPTS_PATH/common.sh"
-USERNAME="$1"
-PASSWORD="$2"
 
 mkdir -p "$WORKSPACE_MOUNT_PATH"
 assert $? "Failed to create mount path" || exit $?
@@ -15,13 +13,7 @@ useradd -ms /bin/bash -g developers $USERNAME -p "$PASSWORD" &&
     adduser $USERNAME sudo &&
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >"/etc/sudoers.d/$USERNAME" &&
     chmod 0440 /etc/sudoers.d/$USERNAME
-assert $? "Failed to create user"
+assert $? "Failed to create user" || exit $?
 
-su -c '"${SCRIPTS_PATH}/image/fix_folder_permissions" "/workspace"' "$USERNAME"
-assert $? "Failed to adjust permissions" || exit $?
-
-su -c '"${SCRIPTS_PATH}/image/install_vscode_server_user_extensions"' "$USERNAME"
-assert $? "Failed to install vscode server extentions" || exit $?
-
-su -c '"${SCRIPTS_PATH}/image/configure_vscode_defaults"' "$USERNAME"
-assert $? "Failed to adjust permissions" || exit $?
+sudo -E -H -u "$USERNAME" "${SCRIPTS_PATH}/image/prepare_user"
+assert $? "Failed to prepare user" || exit $?

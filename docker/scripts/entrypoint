@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+source "$SCRIPTS_PATH/common.sh"
+
+: "${USERNAME:="developer"}"
+: "${PASSWORD:=""}"
+
+log:sep "FARFETCHED (remote development service, user: $USERNAME)"
+
+id "$USERNAME" &>/dev/null
+if [ $? -ne 0 ]; then
+    # call to initialize the user
+    "$SCRIPTS_PATH/image/init_farfetched"
+fi
+
+log "Initialzing as user $USERNAME"
+if [ "$(whoami)" != "$USERNAME" ]; then
+    sudo -E -H -u "$USERNAME" "$SCRIPTS_PATH/image/entrypoint_as_user"
+else
+    "$SCRIPTS_PATH/image/entrypoint_as_user"
+fi

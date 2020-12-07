@@ -32,7 +32,7 @@ RUN apt-get update -yqq && \
 
 # Adding scripts
 ARG SCRIPTS_PATH="/scripts"
-ENV SCRIPTS_PATH "${SCRIPTS_PATH}"
+ENV SCRIPTS_PATH="${SCRIPTS_PATH}"
 COPY scripts $SCRIPTS_PATH
 RUN chmod -R +x $SCRIPTS_PATH
 
@@ -47,16 +47,18 @@ RUN /scripts/installs/install_vscode_server &&\
     /scripts/installs/install_k9s &&\
     apt-get clean
 
-COPY ./docker/entrypoint /scripts/entrypoint
-
-
 # Configure sshd
 COPY ./docker/sshd_config /etc/ssh/sshd_config
 COPY ./.ssh_host_keys/* /etc/ssh/
 
-RUN chmod +x /scripts/entrypoint /scripts/image/create_farfetched_user && \
+# Add image scripts
+COPY ./docker/scripts ${SCRIPTS_PATH}/image
+
+# Change permissions
+RUN chmod -R +x ${SCRIPTS_PATH} && \
     chmod -R 0600 /etc/ssh/ && \
-    ln -sf /scripts/image/create_farfetched_user /usr/bin/create_farfetched_user
+    sudo groupadd developers && \
+    ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched
 
 #########################
 # Configure the user environment
@@ -66,7 +68,6 @@ ARG VSCODE_EXTENSIONS=""
 
 ENV VSCODE_EXTENSIONS="$VSCODE_EXTENSIONS"
 ENV WORKSPACE_MOUNT_PATH $WORKSPACE_MOUNT_PATH
-
 
 WORKDIR /defaults
 COPY ./docker/vscode_default_settings.json  .
@@ -96,15 +97,18 @@ ENV TERMINATE_PORT="${TERMINATE_PORT}"\
 
 EXPOSE ${TERMINATE_PORT} $SSH_PORT $TTYD_PORT $VSCODE_PORT
 
+RUN "${SCRIPTS_PATH}/image/install_vscode_extensions" "$VSCODE_EXTENSIONS"
 
-ARG USER=developer_template
-ARG HOME=/home/${USER}
-ENV DEFAULT_FARFETCHED_USERNAME=${USER}
+# ARG USER=guest_developer
+# ARG HOME=/home/${USER}
+# ENV USERNAME=${USER}
+# ENV PASSWORD=""
 
-RUN groupadd developers && \
-    create_farfetched_user ${DEFAULT_FARFETCHED_USERNAME}
+# # Generating the farfetched default user.
+# RUN sudo groupadd developers && \
+#     init_farfetched
 
-USER ${USER}
-WORKDIR ${HOME}
+# USER ${USER}
+# WORKDIR ${HOME}
 
-CMD [ "/scripts/entrypoint" ]
+CMD [ "/scripts/image/entrypoint" ]

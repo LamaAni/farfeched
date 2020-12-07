@@ -95,6 +95,10 @@ function is_command() {
   return 1
 }
 
+function check_access() {
+  [ -r "$1" ] && [ -w "$1" ] && return 0 || return 1
+}
+
 # correction for mac.
 if [ "$(is_command "realpath")" != "true" ]; then
   REALPATH_PYTHON_CALLABLE=""

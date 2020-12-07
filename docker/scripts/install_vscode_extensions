@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+source "$SCRIPTS_PATH/common.sh"
+
+EXTENSIONS="$(trim "$1")"
+EXTENTSIONS_DIR_COMMAND=""
+
+log:sep "Configuring vscode extensions"
+if [ -n "$EXTENSIONS" ]; then
+    if [ "$(whoami)" == "root" ]; then
+        log "Root user detected, installing extensions to global directory."
+        EXTENTSIONS_DIR_COMMAND="--extensions-dir /usr/lib/code-server/lib/vscode/extensions"
+    else
+        log "Installing vscode extensions for user: $(whoami)"
+    fi
+    EXTENSIONS=($EXTENSIONS)
+    for ext in "${EXTENSIONS[@]}"; do
+        code-server \
+            $EXTENTSIONS_DIR_COMMAND \
+            --install-extension "$ext"
+        assert $? "Failed to install vscode user extension" || exit $?
+    done
+else
+    log "No extensions found. Skipping."
+fi
