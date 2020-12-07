@@ -54,11 +54,6 @@ COPY ./.ssh_host_keys/* /etc/ssh/
 # Add image scripts
 COPY ./docker/scripts ${SCRIPTS_PATH}/image
 
-# Change permissions
-RUN chmod -R +x ${SCRIPTS_PATH} && \
-    chmod -R 0600 /etc/ssh/ && \
-    sudo groupadd developers && \
-    ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched
 
 #########################
 # Configure the user environment
@@ -97,18 +92,19 @@ ENV TERMINATE_PORT="${TERMINATE_PORT}"\
 
 EXPOSE ${TERMINATE_PORT} $SSH_PORT $TTYD_PORT $VSCODE_PORT
 
-RUN "${SCRIPTS_PATH}/image/install_vscode_extensions" "$VSCODE_EXTENSIONS"
 
-# ARG USER=guest_developer
-# ARG HOME=/home/${USER}
-# ENV USERNAME=${USER}
-# ENV PASSWORD=""
-
-# # Generating the farfetched default user.
-# RUN sudo groupadd developers && \
-#     init_farfetched
-
-# USER ${USER}
-# WORKDIR ${HOME}
+RUN \
+    #prepare env workdir
+    mkdir -p "$WORKSPACE_MOUNT_PATH" \
+    # Change permissions
+    && \
+    chmod -R +x ${SCRIPTS_PATH} && \
+    chmod -R 0600 /etc/ssh/ && \
+    chmod -R 0777 $WORKSPACE_MOUNT_PATH && \
+    sudo groupadd developers && \
+    ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched\
+    && \
+    # Install extension
+    "${SCRIPTS_PATH}/image/install_vscode_extensions" "$VSCODE_EXTENSIONS"
 
 CMD [ "/scripts/image/entrypoint" ]
