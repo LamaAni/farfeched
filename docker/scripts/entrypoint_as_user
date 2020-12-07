@@ -30,7 +30,11 @@ if [ "$START_VSCODE_HTTP_SERVER" == "true" ]; then
     if [ -n "$VSCODE_HTTPS_CERTIFICATE" ]; then
         VSCODE_HTTPS_CERTIFICATE="--cert $VSCODE_HTTPS_CERTIFICATE"
     fi
-    code-server --disable-telemetry --auth none --bind-addr "0.0.0.0:$VSCODE_PORT" $VSCODE_HTTPS_CERTIFICATE &
+    VSCODE_AUTH="none"
+    if [ -n "$PASSWORD" ]; then
+        VSCODE_AUTH="password"
+    fi
+    code-server --disable-telemetry --auth $VSCODE_AUTH --bind-addr "0.0.0.0:$VSCODE_PORT" $VSCODE_HTTPS_CERTIFICATE &
     log "Started vscode http service @ ${cyan}localhost:$VSCODE_PORT${ec}"
 fi
 
