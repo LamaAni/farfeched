@@ -9,7 +9,13 @@ log:sep "FARFETCHED (remote development service, user: $USERNAME)"
 id "$USERNAME" &>/dev/null
 if [ $? -ne 0 ]; then
     # call to initialize the user
-    "$SCRIPTS_PATH/image/init_farfetched"
+    "$SCRIPTS_PATH/image/init_farfetched" || exit $?
+fi
+
+if [ -n "$INIT_HOOK" ]; then
+    log:sep "Running init hook"
+    bash -c "$INIT_HOOK"
+    assert $? "Init hook failed. Exiting" || exit $?
 fi
 
 log "Initialzing as user $USERNAME"
