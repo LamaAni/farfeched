@@ -64,9 +64,12 @@ ARG VSCODE_EXTENSIONS=""
 ENV VSCODE_EXTENSIONS="$VSCODE_EXTENSIONS"
 ENV WORKSPACE_MOUNT_PATH $WORKSPACE_MOUNT_PATH
 
+WORKDIR /defaults/user_home
 WORKDIR /defaults
 COPY ./docker/vscode_default_settings.json  .
 COPY ./docker/vscode_default_settings.json  .
+
+# Back to working on workspace
 
 ARG TERMINATE_PORT="9999"
 ARG SSH_PORT="22"
@@ -78,6 +81,8 @@ ARG PRESIST_FOLDERS=""
 ARG START_VSCODE_HTTP_SERVER="true"
 ARG START_SSH_SERVER="true"
 ARG START_TTYD_SERVER="true"
+ARG USER_INIT_HOOK=""
+ARG INIT_HOOK=""
 
 ENV TERMINATE_PORT="${TERMINATE_PORT}"\
     SSH_PORT="${SSH_PORT}"\
@@ -88,23 +93,27 @@ ENV TERMINATE_PORT="${TERMINATE_PORT}"\
     PRESIST_FOLDERS="${PRESIST_FOLDERS}"\
     START_VSCODE_HTTP_SERVER="${START_VSCODE_HTTP_SERVER}"\
     START_SSH_SERVER="${START_SSH_SERVER}"\
-    START_TTYD_SERVER="${START_TTYD_SERVER}"
+    START_TTYD_SERVER="${START_TTYD_SERVER}"\
+    INIT_HOOK="${INIT_HOOK}"\
+    USER_INIT_HOOK="${USER_INIT_HOOK}"
 
 EXPOSE ${TERMINATE_PORT} $SSH_PORT $TTYD_PORT $VSCODE_PORT
 
-
 RUN \
     #prepare env workdir
-    mkdir -p "$WORKSPACE_MOUNT_PATH" \
+    mkdir -p "$WORKSPACE_MOUNT_PATH" &&\
+    sudo groupadd developers && \
     # Change permissions
-    && \
     chmod -R +x ${SCRIPTS_PATH} && \
     chmod -R 0600 /etc/ssh/ && \
     chmod -R 0777 $WORKSPACE_MOUNT_PATH && \
-    sudo groupadd developers && \
+    chmod -R 0777 /defaults/user_home && \
+    chgrp -R developers /defaults/user_home && \
     ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched\
     && \
     # Install extension
     "${SCRIPTS_PATH}/image/install_vscode_extensions" "$VSCODE_EXTENSIONS"
 
+# Back to root home folder.
+WORKDIR /root
 CMD [ "/scripts/image/entrypoint" ]

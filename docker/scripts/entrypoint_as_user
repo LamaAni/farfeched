@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 source "$SCRIPTS_PATH/common.sh"
 
+# change to setup dir
+cd "$WORKSPACE_MOUNT_PATH"
+assert $? "Failed to enter setup foler" || exit $?
+
 # Bind the mounts.
 source "$SCRIPTS_PATH/image/bind_mounts"
 assert $? "Failed to bind mounts" || exit $?
@@ -14,6 +18,10 @@ log:sep "Starting system services with user: $(whoami)"
 : "${WORKSPACE_MOUNT_PATH:="/workspace"}"
 
 export HOME="$WORKSPACE_MOUNT_PATH/$(whoami)"
+
+# Change to home.
+cd "$HOME"
+assert $? "Failed to change to home directory @ $HOME" || exit $?
 
 if [ "$START_SSH_SERVER" == "true" ]; then
     sudo mkdir -p /run/sshd
@@ -32,6 +40,12 @@ if [ "$START_VSCODE_HTTP_SERVER" == "true" ]; then
     fi
     code-server --disable-telemetry --auth none --bind-addr "0.0.0.0:$VSCODE_PORT" $VSCODE_HTTPS_CERTIFICATE &
     log "Started vscode http service @ ${cyan}localhost:$VSCODE_PORT${ec}"
+fi
+
+if [ -n "$USER_INIT_HOOK" ]; then
+    log:sep "Running user init hook"
+    bash -c "$USER_INIT_HOOK"
+    assert $? "User init hook failed. Exiting" || exit $?
 fi
 
 log "System ready, waiting for termination signal @ https port $TERMINATE_PORT"
