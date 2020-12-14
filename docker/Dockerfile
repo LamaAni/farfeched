@@ -102,13 +102,22 @@ EXPOSE ${TERMINATE_PORT} $SSH_PORT $TTYD_PORT $VSCODE_PORT
 RUN \
     #prepare env workdir
     mkdir -p "$WORKSPACE_MOUNT_PATH" &&\
-    sudo groupadd developers && \
-    # Change permissions
+    groupadd developers && \
+    # Change permissions for main scripts and ssh
     chmod -R +x ${SCRIPTS_PATH} && \
     chmod -R 0600 /etc/ssh/ && \
-    chmod -R 0777 $WORKSPACE_MOUNT_PATH && \
-    chmod -R 0777 /defaults/user_home && \
-    chgrp -R developers /defaults/user_home && \
+    # Change permissions on shared folders.
+    chgrp -R developers \
+        /usr/lib/code-server \
+        ${WORKSPACE_MOUNT_PATH} \
+        /defaults/user_home \
+    &&\
+    chmod -R g+w \
+        /usr/lib/code-server \
+        ${WORKSPACE_MOUNT_PATH} \
+        /defaults/user_home \
+    &&\
+    # Link main scripts.
     ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched\
     && \
     # Install extension
