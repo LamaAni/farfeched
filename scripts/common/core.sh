@@ -25,7 +25,7 @@ function assert_warning() {
   local err="$1"
   : ${err:=0}
   if [ "$err" -ne 0 ]; then
-    log_core "${yellow}WARNING${end_color}" "$2" &>2
+    log_core "${yellow}WARNING${end_color}" "$2" 1>&2
     return $err
   fi
 }
