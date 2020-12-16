@@ -12,20 +12,24 @@ function log_core() {
   echo "${prefix}" "$@"
 }
 
+# ------------------
+
 function assert() {
   local err="$1"
+  shift
   : ${err:=0}
   if [ "$err" -ne 0 ]; then
-    log_core "${red}ERROR${end_color}" "$2" 1>&2
+    log_core "${red}ERROR${end_color}" "$@" 1>&2
     return $err
   fi
 }
 
 function assert_warning() {
   local err="$1"
+  shift
   : ${err:=0}
   if [ "$err" -ne 0 ]; then
-    log_core "${yellow}WARNING${end_color}" "$2" 1>&2
+    log_core "${yellow}WARNING${end_color}" "$@" 1>&2
     return $err
   fi
 }
@@ -35,18 +39,9 @@ function warn() {
   return $?
 }
 
-export LINE_SEPARATOR='------------------------------------'
-
-function assert() {
-  local err="$1"
-  : ${err:=0}
-  if [ "$err" -ne 0 ]; then
-    log_core "${red}ERROR${end_color}" "$2" &>2
-    return $err
-  fi
-}
-
 # ------------------
+
+export LINE_SEPARATOR='------------------------------------'
 
 function log:info() {
   log_core "${green}INFO${end_color}" "$@"

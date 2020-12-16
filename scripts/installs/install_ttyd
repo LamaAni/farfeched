@@ -6,12 +6,12 @@ log:sep "Installing remote terminal (ttyd)"
 APP_FULL_PATH="$APPS_DIR/ttyd"
 
 REPO_LINK="https://github.com/tsl0922/ttyd"
-REPO_DOWNLOAD_LINK="$(get_github_latest_release_downloads_url "$REPO_LINK")/ttyd_linux.x86_64"
+REPO_DOWNLOAD_LINK="$(get_github_latest_release_downloads_url "$REPO_LINK")/ttyd.x86_64"
 assert $? "Failed to resolve latest version of ttyd" || exit $?
 
 log "Downloading @ $REPO_DOWNLOAD_LINK -> $APP_FULL_PATH"
 mkdir -p "$APP_FULL_PATH" &&
-    curl "$REPO_DOWNLOAD_LINK" -sL -o "$APP_FULL_PATH/ttyd"
+    curl "$REPO_DOWNLOAD_LINK" --fail -sL -o "$APP_FULL_PATH/ttyd"
 assert $? "Failed to lownload and install ttyd" || exit $?
 
 log "Linking to /usr/local/bin"
