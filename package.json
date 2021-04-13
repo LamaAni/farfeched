@@ -1,0 +1,32 @@
+{
+  "name": "farfeched",
+  "version": "0.1.0",
+  "description": "A Kubernetes based remote development environment",
+  "main": "web/index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LamaAni/farfeched.git"
+  },
+  "keywords": [
+    "Remote",
+    "Development",
+    "Docker",
+    "Kubernetes",
+    "Visual",
+    "Studio",
+    "Code",
+    "VSCODE"
+  ],
+  "author": "Zav Shotan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LamaAni/farfeched/issues"
+  },
+  "homepage": "https://github.com/LamaAni/farfeched#readme"
+}
