@@ -1,0 +1,44 @@
+/* Red Highlight: #B73225
+Blue Minded: #004E7C
+Maroon 6: #591COB
+Grey Water: #5C5F58
+Lighter Grey: #DCE1E3 */
+.panel-bg {
+    background-color: #333438;
+}
+.top-menu {
+    box-shadow: 4px 4px 5px 0px #65686298;
+}
+.content-bg {
+    color: whitesmoke;
+}
+.input-bg {
+    background-color: whitesmoke;
+}
+.highlight-bg {
+    background-color: #dce1e3;
+}
+.highlight-color {
+    color: #b73225;
+}
+.title-color {
+    color: #591c0b;
+}
+.disp-color {
+    color: #5c5f58;
+}
+.input-color {
+    color: rgb(14, 13, 13);
+}
+.farfetched-title {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+    color: whitesmoke;
+}
+
+.bg-btn {
+    cursor: pointer;
+}
+.bg-btn:hover {
+    background-color: #c0c0c0;
+}

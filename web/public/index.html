@@ -1,0 +1,14 @@
+<!DOCTYPE html5>
+<html>
+
+<head>
+    <%- await include('../components/common_head.html') %>
+</head>
+
+<body>
+    <%- await include('../components/main_structure.html',{print_footer:false}) %>
+    This is the included code
+    <%- await include('../components/main_structure.html',{print_footer:true}) %>
+</body>
+
+</html>

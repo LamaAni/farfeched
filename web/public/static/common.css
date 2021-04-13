@@ -1,0 +1,46 @@
+html {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    padding: 0px;
+    margin: 0px;
+}
+
+.header-box {
+    height: 40pt;
+}
+
+.footer-box {
+    height: 20pt;
+}
+
+.input-box {
+    height: 18pt;
+    border: none;
+    box-sizing: border-box;
+    display: block;
+}
+
+.farfetched-title-box {
+    font-size: 20pt;
+    padding: 5pt 10pt;
+    font-weight: bold;
+}
+
+.search-box {
+    min-width: 25%;
+    width: 200pt;
+    align-items: center;
+    justify-content: center;
+    margin: 4pt;
+    border-radius: 3pt;
+}
+
+.logo-box {
+    font-size: 20pt;
+    padding: 5pt 10pt;
+}

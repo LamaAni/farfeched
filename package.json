@@ -28,5 +28,11 @@
   "bugs": {
     "url": "https://github.com/LamaAni/farfeched/issues"
   },
-  "homepage": "https://github.com/LamaAni/farfeched#readme"
+  "homepage": "https://github.com/LamaAni/farfeched#readme",
+  "dependencies": {
+    "@lamaani/infer": "github:lamaani/infer",
+    "@lamaani/stratis": "github:lamaani/stratis",
+    "express": "^4.17.1",
+    "stratis": "github:lamaani/stratis"
+  }
 }
