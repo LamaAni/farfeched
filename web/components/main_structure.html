@@ -6,26 +6,27 @@
     <div class="header-box panel-bg top-menu" style="display: flex;">
         <div class="title-color farfetched-title-box farfetched-title">FARFETCHED</div>
         <div style="flex: 1;"></div>
-        <div class="search-box input-bg input-color" style="display: flex;">
-            <div><img class="bg-btn" src="imgs/search.png" style="width: 20pt; margin: 0pt 5pt; border-radius: 15pt; padding: 5pt;" /></div>
+        <div class="search-box input-bg input-color" style="display: none;">
+            <div><img class="bg-btn" src="imgs/search.png"
+                    style="width: 20pt; margin: 0pt 5pt; border-radius: 15pt; padding: 5pt;" /></div>
             <div style="flex: 1;">
                 <input type="text" class="input-color input-bg input-box" />
             </div>
         </div>
         <div style="flex: 1;"></div>
         <div class="logo-box">
-            <img src="imgs/logo.png" />
+            <img style="max-height: 30pt;" src="imgs/logo.png" />
         </div>
     </div>
     <!-- main panel -->
-    <div style="display: flex; flex: 1;">
-        <div class="left-menu">
+    <div class="middle-box" style="display: flex; flex: 1;flex-direction: row;">
+        <div class="left-box">
         </div>
-        <div style="display: flex; flex: 1;min-width: 100%;">
+        <div class="center-box" style="display: flex; flex: 1;">
             <% } %>
             <% if (print_footer==true) {%>
         </div>
-        <div class="right-menu">
+        <div class="right-box">
         </div>
     </div>
 

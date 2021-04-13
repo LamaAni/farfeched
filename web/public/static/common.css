@@ -12,10 +12,17 @@ body {
 
 .header-box {
     height: 40pt;
+    align-items: center;
+    justify-content: center;
 }
 
 .footer-box {
     height: 20pt;
+    align-items: center;
+    justify-content: center;
+}
+
+.middle-box {
 }
 
 .input-box {
@@ -43,4 +50,16 @@ body {
 .logo-box {
     font-size: 20pt;
     padding: 5pt 10pt;
+}
+
+.center-box {
+    align-items: top;
+}
+
+.right-box {
+    width: 200pt;
+}
+
+.left-box {
+    width: 200pt;
 }
