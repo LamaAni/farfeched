@@ -1,0 +1,24 @@
+environments:
+  # Always called.
+  default: []
+  sandbox:
+    # JS Init for sandbox.
+    - ./environments/sandbox.js
+    - ./environments/sandbox.yaml
+  prod:
+    - ./environments/prod.js
+    - ./environments/prod.yaml
+
+permissions:
+  users:
+    - allow: '.*'
+      role: admin
+  groups:
+    - allow: '.*'
+      role: admin
+
+services:
+  - dev_backend:
+    icon: null
+    resource_name: null # Find the kubernetes resource name.
+    url: null # In case a specific url is used.

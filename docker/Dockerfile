@@ -108,14 +108,14 @@ RUN \
     chmod -R 0600 /etc/ssh/ && \
     # Change permissions on shared folders.
     chgrp -R developers \
-        /usr/lib/code-server \
-        ${WORKSPACE_MOUNT_PATH} \
-        /defaults/user_home \
+    /usr/lib/code-server \
+    ${WORKSPACE_MOUNT_PATH} \
+    /defaults/user_home \
     &&\
     chmod -R g+w \
-        /usr/lib/code-server \
-        ${WORKSPACE_MOUNT_PATH} \
-        /defaults/user_home \
+    /usr/lib/code-server \
+    ${WORKSPACE_MOUNT_PATH} \
+    /defaults/user_home \
     &&\
     # Link main scripts.
     ln -sf /scripts/image/init_farfetched /usr/bin/init_farfetched\

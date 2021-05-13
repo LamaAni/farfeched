@@ -30,9 +30,11 @@
   },
   "homepage": "https://github.com/LamaAni/farfeched#readme",
   "dependencies": {
-    "@lamaani/infer": "github:lamaani/infer",
-    "@lamaani/stratis": "github:lamaani/stratis",
+    "@lamaani/dngateway": "github:lamaani/dngateway#0.0.3",
+    "@lamaani/infer": "github:lamaani/infer#0.1.7",
+    "@lamaani/stratis": "github:lamaani/stratis#0.3.6",
     "express": "^4.17.1",
-    "stratis": "github:lamaani/stratis"
+    "extend": "^3.0.2",
+    "yaml": "^1.10.2"
   }
 }

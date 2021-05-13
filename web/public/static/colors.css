@@ -7,7 +7,10 @@ Lighter Grey: #DCE1E3 */
     background-color: #333438;
 }
 .top-menu {
-    box-shadow: 4px 4px 5px 0px #65686298;
+    box-shadow: 4px 4px 5px 0px #33333398;
+}
+.document-bg {
+    background-color: #5c5c5c;
 }
 .content-bg {
     color: whitesmoke;

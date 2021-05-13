@@ -1,0 +1,22 @@
+# A collection of named environments.
+environments: {}
+
+permissions:
+  users:
+    - allow: '.*'
+      role: admin
+  groups:
+    - allow: '.*'
+      role: admin
+
+services:
+  # Example service.
+  - dev_backend:
+    icon: null
+    # Load from a specific service name.
+    service_name: null
+    # In case a specific url is used.
+    url: null
+
+machines:
+  template_folder: ./machines
